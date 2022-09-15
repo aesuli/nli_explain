@@ -3,7 +3,7 @@ import pickle
 import random
 from collections import Counter
 
-dataset_path = r'd:\Users\esuli\Documents\Corpora\reddit.l2\reddit_full_posts_data\non_europe_data'
+dataset_path = r'/media/datasets/reddit.l2/reddit_full_posts_data/non_europe_data'
 
 dataset_files = list()
 
@@ -55,6 +55,7 @@ for language in to_keep:
 
 print(counts)
 
+os.makedirs('data',exist_ok=True)
 with open(os.path.join('data', 'reddit500k.pkl'), mode='wb') as outputfile:
     pickle.dump(X, outputfile)
     pickle.dump(y, outputfile)

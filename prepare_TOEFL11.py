@@ -3,7 +3,7 @@ import pickle
 
 import pandas as pd
 
-label_file = r'e:\Users\Andrea Esuli\Documents\Corpora\nli-shared-task-2017\data\labels\train\labels.train.csv'
+label_file = r'/media/datasets/nli-shared-task-2017/data/labels/train/labels.train.csv'
 
 df = pd.read_csv(label_file)
 
@@ -11,7 +11,7 @@ train_label = dict(zip(list(df['test_taker_id']), list(df['L1'])))
 
 print(len(train_label), set(train_label.values()))
 
-dataset_path = r'e:\Users\Andrea Esuli\Documents\Corpora\nli-shared-task-2017\data\essays\train\tokenized'
+dataset_path = r'/media/datasets/nli-shared-task-2017/data/essays/train/tokenized'
 
 dataset_files = list()
 
@@ -30,6 +30,7 @@ for key in train_label:
     X.append(train_text[key])
     y.append(train_label[key])
 
+os.makedirs('data',exist_ok=True)
 with open(os.path.join('data', 'toefl11.pkl'), mode='wb') as outputfile:
     pickle.dump(X, outputfile)
     pickle.dump(y, outputfile)

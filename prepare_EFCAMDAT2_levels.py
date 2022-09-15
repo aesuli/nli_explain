@@ -5,8 +5,9 @@ from collections import Counter
 import bs4
 import pandas as pd
 
+os.makedirs('data',exist_ok=True)
 if not os.path.exists(os.path.join('data', 'EFCAMDAT2_df.pkl')):
-    xmlfile = r'e:\Users\Andrea Esuli\Documents\Corpora\EFCAMDAT2\EF201403_selection121.xml'
+    xmlfile = r'/media/datasets/EFCAMDAT2/EF201403_selection121.xml'
 
     print('Loading xml', flush=True)
     with open(xmlfile, mode='r', encoding='utf-8') as inputfile:

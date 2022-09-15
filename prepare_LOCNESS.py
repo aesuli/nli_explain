@@ -5,7 +5,7 @@ import re
 from collections import defaultdict
 from pprint import pprint
 
-dataset_path = r'd:\Users\esuli\Documents\Corpora\LOCNESS-corpus-files'
+dataset_path = r'/media/datasets/LOCNESS-corpus-files'
 
 dataset_files = list()
 
@@ -37,6 +37,7 @@ for filename in dataset_files:
 print(len(X))
 pprint(counts)
 
+os.makedirs('data',exist_ok=True)
 with open(os.path.join('data', 'LOCNESS.pkl'), mode='wb') as outputfile:
     pickle.dump(X, outputfile)
     pickle.dump(y, outputfile)

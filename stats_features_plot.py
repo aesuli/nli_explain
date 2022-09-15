@@ -1,18 +1,14 @@
 import os
 import pickle
-import sys
 from collections import Counter, defaultdict
-import numpy as np
+
 import matplotlib.pyplot as plt
 
 
-def feture_stats(dataset):
+def plot_features_stats(dataset):
     with open(os.path.join('data', dataset + '.pkl'), mode='rb') as inputfile:
         pickle.load(inputfile)
         y = pickle.load(inputfile)
-
-    with open(os.path.join('data', dataset + '_indexed.pkl'), mode='rb') as inputfile:
-        X = pickle.load(inputfile)
 
     stats_dir = 'feature_stats'
 
@@ -21,9 +17,11 @@ def feture_stats(dataset):
     to_test = ['WL', 'SL', 'DD']
 
     for feat in to_test:
+        with open(os.path.join('data', dataset + '_indexed_' + feat + '.pkl'), mode='rb') as inputfile:
+            X = pickle.load(inputfile)
         counter = defaultdict(Counter)
         for doc, label in zip(X, y):
-            counter[label].update(doc[feat])
+            counter[label].update(doc)
 
         min_val = 0
         if feat == 'WL':
@@ -32,7 +30,6 @@ def feture_stats(dataset):
             max_val = 100
         elif feat == 'DD':
             max_val = 20
-
 
         print(dataset, feat, 'LANG', sep='\t', end='\t')
         labels = list()
@@ -54,9 +51,8 @@ def feture_stats(dataset):
         plt.close()
 
 
-
 if __name__ == '__main__':
-    for dataset in [  'toefl11', 'reddit500k',
-        'EFCAMDAT2', 'EFCAMDAT2_L1', 'EFCAMDAT2_L2', 'EFCAMDAT2_L3'
-    ]:
-        feture_stats(dataset)
+    for dataset in ['toefl11', 'reddit',
+                    'EFCAMDAT2', 'EFCAMDAT2_L1', 'EFCAMDAT2_L2', 'EFCAMDAT2_L3'
+                    ]:
+        plot_features_stats(dataset)

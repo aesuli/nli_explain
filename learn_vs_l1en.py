@@ -1,13 +1,12 @@
 import os
 import pickle
-from functools import partial
 
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
 from sklearn.tree import DecisionTreeClassifier
 
-from custom_tokenization import list_tokenizer
+from custom_tokenization import dummy_tokenizer
 
 
 def learn(dataset, dataset_en, algo):
@@ -16,15 +15,9 @@ def learn(dataset, dataset_en, algo):
         pickle.load(inputfile)
         y = pickle.load(inputfile)
 
-    with open(os.path.join('data', dataset + '_indexed.pkl'), mode='rb') as inputfile:
-        X = pickle.load(inputfile)
-
     with open(os.path.join('data', dataset_en + '.pkl'), mode='rb') as inputfile:
         pickle.load(inputfile)
         y_en = pickle.load(inputfile)
-
-    with open(os.path.join('data', dataset_en + '_indexed.pkl'), mode='rb') as inputfile:
-        X_en = pickle.load(inputfile)
 
     model_dir = os.path.join('models_vs_l1en', algo)
 
@@ -77,8 +70,32 @@ def learn(dataset, dataset_en, algo):
 
     for feat_mask in to_test:
         mask = ''
+        X = None
         for feat_type in feat_mask:
             mask += '_' + feat_type
+            with open(os.path.join('data', dataset + '_indexed_' + feat_type + '.pkl'), mode='rb') as inputfile:
+                feat_X = pickle.load(inputfile)
+                if X is None:
+                    X = feat_X
+                else:
+                    if len(X) != len(feat_X):
+                        raise Exception(
+                            f'Mismatch in the number of indexed documents {len(X)}!={len(feat_X)} ({feat_type})')
+                    for vect, feat_vect in zip(X, feat_X):
+                        vect.extend(feat_vect)
+
+        X_en = None
+        for feat_type in feat_mask:
+            with open(os.path.join('data', dataset_en + '_indexed_' + feat_type + '.pkl'), mode='rb') as inputfile:
+                feat_X = pickle.load(inputfile)
+                if X_en is None:
+                    X_en = feat_X
+                else:
+                    if len(X_en) != len(feat_X):
+                        raise Exception(
+                            f'Mismatch in the number of indexed documents {len(X_en)}!={len(feat_X)} ({feat_type})')
+                    for vect, feat_vect in zip(X_en, feat_X):
+                        vect.extend(feat_vect)
 
         if len(mask) == 0:
             continue
@@ -101,7 +118,7 @@ def learn(dataset, dataset_en, algo):
                 learner = DecisionTreeClassifier(max_depth=3)
 
             pipeline = Pipeline([
-                ('vect', CountVectorizer(analyzer=partial(list_tokenizer, feat_mask), lowercase=False, min_df=2)),
+                ('vect', CountVectorizer(analyzer=dummy_tokenizer, lowercase=False, min_df=2)),
                 # ('select', SelectPercentile(chi2, percentile=50)),
                 ('weight', TfidfTransformer()),
                 ('class', learner)
@@ -119,7 +136,7 @@ if __name__ == '__main__':
     for dataset in [
         'toefl11',
         'EFCAMDAT2',
-        'reddit500k',
+        'reddit',
         'EFCAMDAT2_L1',
         'EFCAMDAT2_L2',
         'EFCAMDAT2_L3'
@@ -127,7 +144,7 @@ if __name__ == '__main__':
         if dataset in {'toefl11', 'EFCAMDAT2', 'EFCAMDAT2_L1', 'EFCAMDAT2_L2', 'EFCAMDAT2_L3'}:
             dataset_en = 'LOCNESS'
         else:
-            dataset_en = 'reddit500kEN'
+            dataset_en = 'redditEN'
         for algo in ['svm']:
             # 'dt']:
             learn(dataset, dataset_en, algo)

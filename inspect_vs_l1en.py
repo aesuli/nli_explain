@@ -142,7 +142,7 @@ def inspect(dataset, algo):
 if __name__ == '__main__':
     for dataset in [
         'toefl11',
-        'reddit500k',
+        'reddit',
         'EFCAMDAT2'
         'EFCAMDAT2_L1',
         'EFCAMDAT2_L2',

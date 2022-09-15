@@ -8,28 +8,29 @@ from cycler import cycler
 
 
 def feture_stats():
-    dX = dict()
+    dX = defaultdict(dict)
     dy = dict()
+    to_test = ['WL', 'SL', 'DD']
     for level in ['EFCAMDAT2_L1', 'EFCAMDAT2_L2', 'EFCAMDAT2_L3']:
         with open(os.path.join('data', level + '.pkl'), mode='rb') as inputfile:
             pickle.load(inputfile)
             dy[level[-2:]] = pickle.load(inputfile)
 
-        with open(os.path.join('data', level + '_indexed.pkl'), mode='rb') as inputfile:
-            dX[level[-2:]] = pickle.load(inputfile)
+        for feat_type in to_test:
+            with open(os.path.join('data', level + '_indexed_'+feat_type+'.pkl'), mode='rb') as inputfile:
+                dX[level[-2:]][feat_type] = pickle.load(inputfile)
 
     stats_dir = 'feature_stats_L123'
 
     os.makedirs(stats_dir, exist_ok=True)
 
-    to_test = ['WL', 'SL', 'DD']
 
     for feat in to_test:
         counter = defaultdict(Counter)
         languages = set()
         for level in dX:
-            for doc, label in zip(dX[level], dy[level]):
-                counter[level + '_' + label].update(doc[feat])
+            for doc, label in zip(dX[level][feat], dy[level]):
+                counter[level + '_' + label].update(doc)
                 languages.add(label)
 
         min_val = 1
@@ -44,7 +45,6 @@ def feture_stats():
         print(feat, 'LANG', sep='\t', end='\t')
         labels = list()
         for value in range(min_val, max_val + 1):
-            # print(value, end='\t')
             labels.append(value)
         print()
         per_lang_lab_vals = dict()
@@ -54,17 +54,9 @@ def feture_stats():
                     continue
                 series = list()
                 den = sum([value for value in counter[label].values()])
-                # print(feat, label, sep='\t', end='\t')
                 for value in range(min_val, max_val + 1):
                     series.append(counter[label][feat + "_" + str(value)] / den)
-                    # print(f'{counter[label][feat + "_" + str(value)] / den:3.3}', end='\t')
                 per_lang_lab_vals[label] = series
-                # plt.semilogy(labels, series, label=label)
-                # print()
-            # plt.xticks([1] + list(np.arange(0, max_val + 1, max_val / 5)[1:]))
-            # plt.legend(loc='upper right')
-            # plt.savefig(os.path.join(stats_dir, 'efcamdat_123_' + feat + '_' + language + '.pdf'))
-            # plt.close()
 
         if feat in ['WL', 'SL', 'DD']:
             per_lang_lab_dens = dict()

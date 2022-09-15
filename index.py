@@ -1,5 +1,6 @@
 import os
 import pickle
+from collections import defaultdict
 
 from tqdm.auto import tqdm
 
@@ -14,22 +15,25 @@ def index(dataset):
 
     from custom_tokenization import spacy_tokenizer
 
-    indexed = list()
+    indexed = defaultdict(list)
     for text in tqdm(X):
-        indexed.append(spacy_tokenizer(text))
+        features_dict =spacy_tokenizer(text)
+        for feature_type in features_dict:
+            indexed[feature_type].append(features_dict[feature_type])
 
-    with open(os.path.join('data', dataset + '_indexed.pkl'), mode='wb') as outputfile:
-        pickle.dump(indexed, outputfile)
+    for feature_type in indexed:
+        with open(os.path.join('data', dataset + '_indexed_' + feature_type + '.pkl'), mode='wb') as outputfile:
+            pickle.dump(indexed[feature_type], outputfile)
     print('indexed', dataset)
 
 
 if __name__ == '__main__':
     for dataset in [
         'toefl11',
-        'reddit500k',
+        'reddit',
         'EFCAMDAT2',
         'LOCNESS',
-        'reddit500kEN',
+        'redditEN',
         'EFCAMDAT2_L1',
         'EFCAMDAT2_L2',
         'EFCAMDAT2_L3'

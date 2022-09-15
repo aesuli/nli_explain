@@ -3,6 +3,38 @@ import spacy
 
 nlp = None
 
+feature_types = [
+    'T1',
+    'T2',
+    'T3',
+    'Tn1',
+    'Tn2',
+    'Tn3',
+    'L1',
+    'L2',
+    'L3',
+    'Ln1',
+    'Ln2',
+    'Ln3',
+    'P1',
+    'P2',
+    'P3',
+    'D1',
+    'D2',
+    'D3',
+    'Tp1',
+    'Tp2',
+    'Tp3',
+    'Lp1',
+    'Lp2',
+    'Lp3',
+    'Ms1',
+    'Ms2',
+    'Ms3',
+    'WL',
+    'SL',
+    'DD',
+]
 
 def spacy_tokenizer(text):
     global nlp
@@ -147,11 +179,8 @@ def spacy_tokenizer(text):
     return features
 
 
-def list_tokenizer(fields, text):
-    tokens = list()
-    for key in fields:
-        tokens.extend(text[key])
-    return tokens
+def dummy_tokenizer(tokenized_doc):
+    return tokenized_doc
 
 
 if __name__ == '__main__':

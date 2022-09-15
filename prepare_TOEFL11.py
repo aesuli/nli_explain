@@ -1,36 +1,38 @@
 import os
 import pickle
+import sys
 
 import pandas as pd
 
-label_file = r'/media/datasets/nli-shared-task-2017/data/labels/train/labels.train.csv'
+if __name__ == '__main__':
+    label_file = sys.argv[1]+r'/nli-shared-task-2017/data/labels/train/labels.train.csv'
 
-df = pd.read_csv(label_file)
+    df = pd.read_csv(label_file)
 
-train_label = dict(zip(list(df['test_taker_id']), list(df['L1'])))
+    train_label = dict(zip(list(df['test_taker_id']), list(df['L1'])))
 
-print(len(train_label), set(train_label.values()))
+    print(len(train_label), set(train_label.values()))
 
-dataset_path = r'/media/datasets/nli-shared-task-2017/data/essays/train/tokenized'
+    dataset_path = sys.argv[1]+r'/nli-shared-task-2017/data/essays/train/tokenized'
 
-dataset_files = list()
+    dataset_files = list()
 
-for filename in os.listdir(dataset_path):
-    if os.path.isfile(os.path.join(dataset_path, filename)):
-        dataset_files.append(filename)
+    for filename in os.listdir(dataset_path):
+        if os.path.isfile(os.path.join(dataset_path, filename)):
+            dataset_files.append(filename)
 
-train_text = dict()
-for filename in dataset_files:
-    with open(os.path.join(dataset_path, filename), mode='r', encoding='utf-8') as inputfile:
-        train_text[int(filename[0:filename.rfind('.')])] = inputfile.read()
+    train_text = dict()
+    for filename in dataset_files:
+        with open(os.path.join(dataset_path, filename), mode='r', encoding='utf-8') as inputfile:
+            train_text[int(filename[0:filename.rfind('.')])] = inputfile.read()
 
-X = list()
-y = list()
-for key in train_label:
-    X.append(train_text[key])
-    y.append(train_label[key])
+    X = list()
+    y = list()
+    for key in train_label:
+        X.append(train_text[key])
+        y.append(train_label[key])
 
-os.makedirs('data',exist_ok=True)
-with open(os.path.join('data', 'toefl11.pkl'), mode='wb') as outputfile:
-    pickle.dump(X, outputfile)
-    pickle.dump(y, outputfile)
+    os.makedirs('data',exist_ok=True)
+    with open(os.path.join('data', 'toefl11.pkl'), mode='wb') as outputfile:
+        pickle.dump(X, outputfile)
+        pickle.dump(y, outputfile)

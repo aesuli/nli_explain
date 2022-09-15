@@ -1,6 +1,5 @@
 import os
 import pickle
-from functools import partial
 
 import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
@@ -11,7 +10,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
 from sklearn.tree import DecisionTreeClassifier
 
-from custom_tokenization import list_tokenizer
+from custom_tokenization import dummy_tokenizer
 
 
 def kfold(texts, labels, pipeline, folds=10, seed=0):
@@ -64,21 +63,15 @@ def kfold(texts, labels, pipeline, folds=10, seed=0):
     return output
 
 
-def cv(dataset, dataset_en, algo, only_stats=False):
+def cv(dataset, dataset_en, algo, only_indexing=False):
     print('cv', dataset, algo)
     with open(os.path.join('data', dataset + '.pkl'), mode='rb') as inputfile:
         pickle.load(inputfile)
         y = pickle.load(inputfile)
 
-    with open(os.path.join('data', dataset + '_indexed.pkl'), mode='rb') as inputfile:
-        X = pickle.load(inputfile)
-
     with open(os.path.join('data', dataset_en + '.pkl'), mode='rb') as inputfile:
         pickle.load(inputfile)
         y_en = pickle.load(inputfile)
-
-    with open(os.path.join('data', dataset_en + '_indexed.pkl'), mode='rb') as inputfile:
-        X_en = pickle.load(inputfile)
 
     to_test = [
         ['T1'],
@@ -125,17 +118,42 @@ def cv(dataset, dataset_en, algo, only_stats=False):
          'D3', 'WL', 'SL', 'DD', 'Tp1', 'Tp2', 'Tp3', 'Lp1', 'Lp2', 'Lp3', 'Ms1', 'Ms2', 'Ms3'],
     ]
 
-    if only_stats:
+    if only_indexing:
         pathdir = 'kfold_stats_vs_l1en'
     else:
         pathdir = 'kfold_res_vs_l1en'
     os.makedirs(pathdir, exist_ok=True)
 
-    with open(os.path.join(pathdir, dataset + '_' + algo + 'vs_l1en_kfold.txt'), mode='w', encoding='utf-8') as outputfile:
+    with open(os.path.join(pathdir, dataset + '_' + algo + 'vs_l1en_kfold.txt'), mode='w',
+              encoding='utf-8') as outputfile:
         for feat_mask in to_test:
             mask = ''
+            X = None
             for feat_type in feat_mask:
                 mask += '_' + feat_type
+                with open(os.path.join('data', dataset + '_indexed_' + feat_type + '.pkl'), mode='rb') as inputfile:
+                    feat_X = pickle.load(inputfile)
+                    if X is None:
+                        X = feat_X
+                    else:
+                        if len(X) != len(feat_X):
+                            raise Exception(
+                                f'Mismatch in the number of indexed documents {len(X)}!={len(feat_X)} ({feat_type})')
+                        for vect, feat_vect in zip(X, feat_X):
+                            vect.extend(feat_vect)
+
+            X_en = None
+            for feat_type in feat_mask:
+                with open(os.path.join('data', dataset_en + '_indexed_' + feat_type + '.pkl'), mode='rb') as inputfile:
+                    feat_X = pickle.load(inputfile)
+                    if X_en is None:
+                        X_en = feat_X
+                    else:
+                        if len(X_en) != len(feat_X):
+                            raise Exception(
+                                f'Mismatch in the number of indexed documents {len(X_en)}!={len(feat_X)} ({feat_type})')
+                        for vect, feat_vect in zip(X_en, feat_X):
+                            vect.extend(feat_vect)
 
             if len(mask) == 0:
                 continue
@@ -156,20 +174,20 @@ def cv(dataset, dataset_en, algo, only_stats=False):
             elif algo == 'dtm':
                 learner = OneVsRestClassifier(DecisionTreeClassifier(max_depth=3))
 
-            if only_stats:
+            if only_indexing:
                 pipeline = Pipeline([
-                    ('vect', CountVectorizer(analyzer=partial(list_tokenizer, feat_mask), lowercase=False, min_df=2)),
+                    ('vect', CountVectorizer(analyzer=dummy_tokenizer, lowercase=False, min_df=2)),
                     # ('select', SelectPercentile(chi2, percentile=50)),
                     ('weight', TfidfTransformer()),
                 ])
 
                 print(dataset + '_' + algo + mask, file=outputfile)
-                Xt = pipeline.fit_transform(X_vs,y_vs)
+                Xt = pipeline.fit_transform(X_vs, y_vs)
                 print(Xt.shape, file=outputfile)
                 print('----------------------', file=outputfile)
             else:
                 pipeline = Pipeline([
-                    ('vect', CountVectorizer(analyzer=partial(list_tokenizer, feat_mask), lowercase=False, min_df=2)),
+                    ('vect', CountVectorizer(analyzer=dummy_tokenizer, lowercase=False, min_df=2)),
                     # ('select', SelectPercentile(chi2, percentile=50)),
                     ('weight', TfidfTransformer()),
                     ('class', learner)
@@ -183,7 +201,7 @@ def cv(dataset, dataset_en, algo, only_stats=False):
 
 if __name__ == '__main__':
     for dataset in [
-        'reddit500k',
+        'reddit',
         'toefl11',
         'EFCAMDAT2',
         # 'EFCAMDAT2_L1',
@@ -193,10 +211,10 @@ if __name__ == '__main__':
         if dataset in {'toefl11', 'EFCAMDAT2', 'EFCAMDAT2_L1', 'EFCAMDAT2_L2', 'EFCAMDAT2_L3'}:
             dataset_en = 'LOCNESS'
         else:
-            dataset_en = 'reddit500kEN'
+            dataset_en = 'redditEN'
 
-        only_stats = True
-        # only_stats = False
+        # only_indexing = True
+        only_indexing = False
 
         for algo in ['svm']:  # , 'dt', 'dtm']:
-            cv(dataset, dataset_en, algo, only_stats=only_stats)
+            cv(dataset, dataset_en, algo, only_indexing=only_indexing)

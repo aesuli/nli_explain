@@ -7,37 +7,42 @@ from cycler import cycler
 
 
 def feture_stats(dataset, dataset_en):
+    to_test = ['WL', 'SL', 'DD']
+
     with open(os.path.join('data', dataset + '.pkl'), mode='rb') as inputfile:
         pickle.load(inputfile)
         y = pickle.load(inputfile)
 
-    with open(os.path.join('data', dataset + '_indexed.pkl'), mode='rb') as inputfile:
-        X = pickle.load(inputfile)
+    X = dict()
+    for feat_type in to_test:
+        with open(os.path.join('data', dataset + '_indexed_'+feat_type+'.pkl'), mode='rb') as inputfile:
+            X[feat_type] = pickle.load(inputfile)
 
     with open(os.path.join('data', dataset_en + '.pkl'), mode='rb') as inputfile:
         pickle.load(inputfile)
         y_en = pickle.load(inputfile)
 
-    with open(os.path.join('data', dataset_en + '_indexed.pkl'), mode='rb') as inputfile:
-        X_en = pickle.load(inputfile)
+    X_en = dict()
+    for feat_type in to_test:
+        with open(os.path.join('data', dataset_en + '_indexed_'+feat_type+'.pkl'), mode='rb') as inputfile:
+            X_en[feat_type] = pickle.load(inputfile)
 
     stats_dir = 'feature_stats_vs_l1en'
 
     os.makedirs(stats_dir, exist_ok=True)
 
-    to_test = ['WL', 'SL', 'DD']
 
     monochrome = (cycler('color', ['k']) * cycler('linestyle', ['-', '--', ':', '=.']) * cycler('marker',
                                                                                                 ['^', ',', '.']))
 
     for feat in to_test:
         counter_en = Counter()
-        for doc in X_en:
-            counter_en.update(doc[feat])
+        for doc in X_en[feat]:
+            counter_en.update(doc)
 
         counter = defaultdict(Counter)
-        for doc, label in zip(X, y):
-            counter[label].update(doc[feat])
+        for doc, label in zip(X[feat], y):
+            counter[label].update(doc)
 
         diffs = defaultdict(dict)
         for label in counter:
@@ -80,9 +85,9 @@ def feture_stats(dataset, dataset_en):
 
 
 if __name__ == '__main__':
-    for dataset in ['toefl11', 'reddit500k', 'EFCAMDAT2', 'EFCAMDAT2_L1', 'EFCAMDAT2_L2', 'EFCAMDAT2_L3']:
+    for dataset in ['toefl11', 'reddit', 'EFCAMDAT2', 'EFCAMDAT2_L1', 'EFCAMDAT2_L2', 'EFCAMDAT2_L3']:
         if dataset in {'toefl11', 'EFCAMDAT2', 'EFCAMDAT2_L1', 'EFCAMDAT2_L2', 'EFCAMDAT2_L3'}:
             dataset_en = 'LOCNESS'
         else:
-            dataset_en = 'reddit500kEN'
+            dataset_en = 'redditEN'
         feture_stats(dataset, dataset_en)

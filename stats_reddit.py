@@ -7,32 +7,33 @@ import pandas as pd
 from tqdm.auto import tqdm
 
 
-dataset_file = "D:/Users/esuli/Documents/Software/NLI/data/reddit500k.pkl"
+if __name__ == '__main__':
+    dataset_file = "data/reddit.pkl"
 
-with open(dataset_file, mode='rb') as inputfile:
-    X = pickle.load(inputfile)
-    y =  pickle.load(inputfile)
+    with open(dataset_file, mode='rb') as inputfile:
+        X = pickle.load(inputfile)
+        y =  pickle.load(inputfile)
 
-token_counts = defaultdict(int)
-for text,nation in tqdm(zip(X,y)):
-    token_counts[nation] += len(text.split())
+    token_counts = defaultdict(int)
+    for text,nation in tqdm(zip(X,y)):
+        token_counts[nation] += len(text.split())
 
-label_counts = Counter(y)
+    label_counts = Counter(y)
 
-pprint(label_counts)
-pprint(token_counts)
+    pprint(label_counts)
+    pprint(token_counts)
 
-dataset_file = "D:/Users/esuli/Documents/Software/NLI/data/reddit500kEN.pkl"
+    dataset_file = "data/redditEN.pkl"
 
-with open(dataset_file, mode='rb') as inputfile:
-    X = pickle.load(inputfile)
-    y =  pickle.load(inputfile)
+    with open(dataset_file, mode='rb') as inputfile:
+        X = pickle.load(inputfile)
+        y =  pickle.load(inputfile)
 
-token_counts = defaultdict(int)
-for text,nation in tqdm(zip(X,y)):
-    token_counts[nation] += len(text.split())
+    token_counts = defaultdict(int)
+    for text,nation in tqdm(zip(X,y)):
+        token_counts[nation] += len(text.split())
 
-label_counts = Counter(y)
+    label_counts = Counter(y)
 
-pprint(label_counts)
-pprint(token_counts)
+    pprint(label_counts)
+    pprint(token_counts)

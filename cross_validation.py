@@ -175,7 +175,7 @@ def cv(dataset, algo, only_indexing=False):
 if __name__ == '__main__':
     for dataset in [
         'toefl11',
-        'EFCAMDAT2'
+        'EFCAMDAT2',
         'reddit',
     ]:
         # only_indexing = True

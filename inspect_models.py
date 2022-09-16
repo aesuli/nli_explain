@@ -73,7 +73,7 @@ def inspect(dataset, algo):
         # selector = pipeline.named_steps['select']
         classifier = pipeline.named_steps['class']
 
-        feature_names = tokenizer.get_feature_names()
+        feature_names = tokenizer.get_feature_names_out()
 
         # feats_w_score = list()
         # for index, (selected, score) in enumerate(zip(selector.get_support(), selector.scores_)):

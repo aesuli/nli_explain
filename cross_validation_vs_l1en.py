@@ -204,9 +204,9 @@ if __name__ == '__main__':
         'reddit',
         'toefl11',
         'EFCAMDAT2',
-        # 'EFCAMDAT2_L1',
-        # 'EFCAMDAT2_L2',
-        # 'EFCAMDAT2_L3'
+        'EFCAMDAT2_L1',
+        'EFCAMDAT2_L2',
+        'EFCAMDAT2_L3'
     ]:
         if dataset in {'toefl11', 'EFCAMDAT2', 'EFCAMDAT2_L1', 'EFCAMDAT2_L2', 'EFCAMDAT2_L3'}:
             dataset_en = 'LOCNESS'

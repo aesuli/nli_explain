@@ -19,10 +19,11 @@ def index(dataset):
 
     for feature_type in feature_types:
         print(f'\t{feature_type}')
+        X_indexed = list()
         for text in tqdm(X):
-            X_indexed =spacy_tokenizer(text, feature_type)
-            with open(os.path.join('data', dataset + '_indexed_' + feature_type + '.pkl'), mode='wb') as outputfile:
-                pickle.dump(X_indexed, outputfile)
+            X_indexed.append(spacy_tokenizer(text, feature_type))
+        with open(os.path.join('data', dataset + '_indexed_' + feature_type + '.pkl'), mode='wb') as outputfile:
+            pickle.dump(X_indexed, outputfile)
     print('indexed', dataset)
 
 

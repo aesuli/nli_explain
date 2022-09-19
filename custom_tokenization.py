@@ -61,8 +61,9 @@ def spacy_tokenizer(text, feature_type):
             return ['T3_' + w1 + '_' + w2 + '_' + w3 for w1, w2, w3 in nltk.ngrams(tokens, 3)]
 
     # tokens with NER filter
+    ner_to_filter = {'PERSON', 'PER', 'NORP', 'FAC', 'ORG', 'GPE', 'LOC', 'PRODUCT', 'EVENT', 'LANGUAGE', 'MONEY'}
+
     if feature_type in ['Tn1', 'Tn2', 'Tn3']:
-        ner_to_filter = {'PERSON', 'PER', 'NORP', 'FAC', 'ORG', 'GPE', 'LOC', 'PRODUCT', 'EVENT', 'LANGUAGE', 'MONEY'}
         ner_tokens = list()
         for token in doc:
             if len(token.text.strip()) > 0:
@@ -114,9 +115,10 @@ def spacy_tokenizer(text, feature_type):
         elif feature_type == 'P3':
             return ['P3_' + w1 + '_' + w2 + '_' + w3 for w1, w2, w3 in nltk.ngrams(poss, 3)]
 
+    to_mask = {'ADD', 'FW', 'JJ', 'JJR', 'JJS', 'NN', 'NNP', 'NNPS', 'NNS', 'XX'}
+
     # tokens with POS filter
     if feature_type in ['Tp1', 'Tp2', 'Tp3']:
-        to_mask = set(['ADD', 'FW', 'JJ', 'JJR', 'JJS', 'NN', 'NNP', 'NNPS', 'NNS', 'XX'])
 
         mposs = list()
         for token in doc:
@@ -228,4 +230,6 @@ def dummy_tokenizer(tokenized_doc):
 
 
 if __name__ == '__main__':
-    print(spacy_tokenizer('I like cookies that contain butter'))
+    for feature_type in feature_types:
+        print(feature_type)
+        print(spacy_tokenizer('I like cookies that contain butter', feature_type))

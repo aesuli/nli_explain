@@ -1,13 +1,14 @@
 import os
 import pickle
 
+import spacy
 from tqdm.auto import tqdm
 
 from custom_tokenization import feature_types
 
 
-def index(dataset, feature_type):
-    print('indexing', dataset, feature_type)
+def index(dataset, feature_types):
+    print('indexing', dataset)
     with open(os.path.join('data', dataset + '.pkl'), mode='rb') as inputfile:
         X = pickle.load(inputfile)
         y = pickle.load(inputfile)
@@ -16,11 +17,23 @@ def index(dataset, feature_type):
 
     from custom_tokenization import spacy_tokenizer
 
-    X_indexed = list()
+    try:
+        nlp = spacy.load('en_core_web_sm')
+    except:
+        spacy.cli.download('en_core_web_sm')
+        nlp = spacy.load('en_core_web_sm')
+
+    X_docs = list()
     for text in tqdm(X):
-        X_indexed.append(spacy_tokenizer(text, feature_type))
-    with open(os.path.join('data', dataset + '_indexed_' + feature_type + '.pkl'), mode='wb') as outputfile:
-        pickle.dump(X_indexed, outputfile)
+        X_docs.append(nlp(text))
+
+    for feature_type in feature_types:
+        print(f'\t{feature_type}')
+        X_indexed = list()
+        for doc in tqdm(X_docs):
+            X_indexed.append(spacy_tokenizer(doc, feature_type))
+        with open(os.path.join('data', dataset + '_indexed_' + feature_type + '.pkl'), mode='wb') as outputfile:
+            pickle.dump(X_indexed, outputfile)
 
 
 if __name__ == '__main__':
@@ -34,5 +47,4 @@ if __name__ == '__main__':
         'EFCAMDAT2_L2',
         'EFCAMDAT2_L3'
     ]:
-        for feature_type in feature_types:
-            index(dataset, feature_type)
+        index(dataset, feature_types)

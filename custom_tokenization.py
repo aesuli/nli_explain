@@ -36,18 +36,22 @@ feature_types = [
     'DD',
 ]
 
+
 def spacy_tokenizer(text, feature_type):
     global nlp
-    if nlp is None:
-        try:
-            nlp = spacy.load('en_core_web_sm')
-        except:
-            spacy.cli.download('en_core_web_sm')
-            nlp = spacy.load('en_core_web_sm')
-    doc = nlp(text)
+    if type(text) == str:
+        if nlp is None:
+            try:
+                nlp = spacy.load('en_core_web_sm')
+            except:
+                spacy.cli.download('en_core_web_sm')
+                nlp = spacy.load('en_core_web_sm')
+        doc = nlp(text)
+    else:
+        doc = text
 
     # tokens
-    if feature_type in ['T1','T2','T3']:
+    if feature_type in ['T1', 'T2', 'T3']:
         tokens = [token.text.strip() for token in doc if len(token.text.strip()) > 0]
         if feature_type == 'T1':
             return ['T1_' + token for token in tokens]
@@ -57,7 +61,7 @@ def spacy_tokenizer(text, feature_type):
             return ['T3_' + w1 + '_' + w2 + '_' + w3 for w1, w2, w3 in nltk.ngrams(tokens, 3)]
 
     # tokens with NER filter
-    if feature_type in ['Tn1','Tn2','Tn3']:
+    if feature_type in ['Tn1', 'Tn2', 'Tn3']:
         ner_to_filter = {'PERSON', 'PER', 'NORP', 'FAC', 'ORG', 'GPE', 'LOC', 'PRODUCT', 'EVENT', 'LANGUAGE', 'MONEY'}
         ner_tokens = list()
         for token in doc:
@@ -74,7 +78,7 @@ def spacy_tokenizer(text, feature_type):
             return ['Tn3_' + w1 + '_' + w2 + '_' + w3 for w1, w2, w3 in nltk.ngrams(ner_tokens, 3)]
 
     # lemmatized
-    if feature_type in ['L1','L2','L3']:
+    if feature_type in ['L1', 'L2', 'L3']:
         lemmas = [token.lemma_.strip() for token in doc if len(token.lemma_.strip()) > 0]
         if feature_type == 'L1':
             return ['L1_' + w for w in lemmas]
@@ -84,7 +88,7 @@ def spacy_tokenizer(text, feature_type):
             return ['L3_' + w1 + '_' + w2 + '_' + w3 for w1, w2, w3 in nltk.ngrams(lemmas, 3)]
 
     # lemmatized tokens with NER filter
-    if feature_type in ['Ln1','Ln2','Ln3']:
+    if feature_type in ['Ln1', 'Ln2', 'Ln3']:
         ner_lemmas = list()
         for token in doc:
             if len(token.lemma_.strip()) > 0:
@@ -100,7 +104,7 @@ def spacy_tokenizer(text, feature_type):
             return ['Ln3_' + w1 + '_' + w2 + '_' + w3 for w1, w2, w3 in nltk.ngrams(ner_lemmas, 3)]
 
     # pos tagging features
-    if feature_type in ['P1','P2','P3']:
+    if feature_type in ['P1', 'P2', 'P3']:
         poss = [token.tag_.strip() for token in doc if len(token.tag_.strip()) > 0]
 
         if feature_type == 'P1':
@@ -111,7 +115,7 @@ def spacy_tokenizer(text, feature_type):
             return ['P3_' + w1 + '_' + w2 + '_' + w3 for w1, w2, w3 in nltk.ngrams(poss, 3)]
 
     # tokens with POS filter
-    if feature_type in ['Tp1','Tp2','Tp3']:
+    if feature_type in ['Tp1', 'Tp2', 'Tp3']:
         to_mask = set(['ADD', 'FW', 'JJ', 'JJR', 'JJS', 'NN', 'NNP', 'NNPS', 'NNS', 'XX'])
 
         mposs = list()
@@ -131,7 +135,7 @@ def spacy_tokenizer(text, feature_type):
             return ['Tp3_' + w1 + '_' + w2 + '_' + w3 for w1, w2, w3 in nltk.ngrams(mposs, 3)]
 
     # lemmatized tokens with POS filter
-    if feature_type in ['Lp1','Lp2','Lp3']:
+    if feature_type in ['Lp1', 'Lp2', 'Lp3']:
         mlposs = list()
         for token in doc:
             if token.tag_.strip() in to_mask:
@@ -149,18 +153,22 @@ def spacy_tokenizer(text, feature_type):
             return ['Lp3_' + w1 + '_' + w2 + '_' + w3 for w1, w2, w3 in nltk.ngrams(mlposs, 3)]
 
     # mixed word-pos tag representation with suffix marking
-    if feature_type in ['Ms1','Ms2','Ms3']:
+    if feature_type in ['Ms1', 'Ms2', 'Ms3']:
         suff_dic = {
             'ADJ': ['able', 'ac', 'al', 'an', 'ian', 'ar', 'ary', 'ate', 'ative', 'ent', 'ern', 'ese', 'esque', 'etic',
                     'ful', 'gonic', 'ial', 'ian', 'iatric', 'ible', 'ic', 'ical', 'ile', 'ine', 'ious', 'ish', 'ive',
                     'less', 'like', 'ous', 'ose', 'plegic', 'some', 'sophic', 'ular', 'uous', 'ward', 'wise', 'y'],
             'NOUN': ['ade', 'age', 'acity', 'ancy', 'ard', 'art', 'cade', 'drome', 'ery', 'ocity', 'aholic', 'oholic',
                      ' algia', 'ance', 'ant', 'ard', 'arian', 'arium', 'orium', 'ation', 'cide', 'cracy', 'crat', 'cy',
-                     'cycle', 'dom', 'dox', 'ectomy', 'ee', 'eer', 'emia', 'ence', 'ency', 'er', 'escence', 'ess', 'ette',
-                     'gon', 'hood', 'iasis', 'ion', 'ism', 'ist', 'ite', 'itis', 'ity', 'isation', 'ization', 'let', 'ling',
-                     'loger', 'logist', 'log', 'logue', 'ment', 'ness', 'oid', 'ology', 'oma', 'onym', 'opia', 'opsy', 'or',
+                     'cycle', 'dom', 'dox', 'ectomy', 'ee', 'eer', 'emia', 'ence', 'ency', 'er', 'escence', 'ess',
+                     'ette',
+                     'gon', 'hood', 'iasis', 'ion', 'ism', 'ist', 'ite', 'itis', 'ity', 'isation', 'ization', 'let',
+                     'ling',
+                     'loger', 'logist', 'log', 'logue', 'ment', 'ness', 'oid', 'ology', 'oma', 'onym', 'opia', 'opsy',
+                     'or',
                      'ory', 'osis', 'ostomy', 'otomy', 'path', 'pathy', 'phile', 'phobia', 'phone', 'phyte', 'plegia',
-                     'pnea', 'scopy', 'scope', 'script', 'ship', 'sion', 'sophy', 'th', 'tion', 'tome', 'tomy', 'trophy',
+                     'pnea', 'scopy', 'scope', 'script', 'ship', 'sion', 'sophy', 'th', 'tion', 'tome', 'tomy',
+                     'trophy',
                      'tude', 'ty', 'ure', 'ware', 'iatry', 'ice'],
             'VERB': ['en', 'fy', 'ize', 'ise', 'scribe', 'sect'],
             'ADV': ['ily', 'ly', 'ward', 'wise', 'fold']}
@@ -187,7 +195,7 @@ def spacy_tokenizer(text, feature_type):
             return ['Ms3_' + w1 + '_' + w2 + '_' + w3 for w1, w2, w3 in nltk.ngrams(msposs, 3)]
 
     # dependency parsing features
-    if feature_type in ['D1','D2','D3']:
+    if feature_type in ['D1', 'D2', 'D3']:
         deps = [token.dep_.strip() for token in doc if len(token.dep_.strip()) > 0]
         if feature_type == 'D1':
             return ['D1_' + w for w in deps]

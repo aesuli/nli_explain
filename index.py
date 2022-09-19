@@ -4,6 +4,8 @@ from collections import defaultdict
 
 from tqdm.auto import tqdm
 
+from custom_tokenization import feature_types
+
 
 def index(dataset):
     print('indexing', dataset)
@@ -15,15 +17,11 @@ def index(dataset):
 
     from custom_tokenization import spacy_tokenizer
 
-    indexed = defaultdict(list)
     for text in tqdm(X):
-        features_dict =spacy_tokenizer(text)
-        for feature_type in features_dict:
-            indexed[feature_type].append(features_dict[feature_type])
-
-    for feature_type in indexed:
-        with open(os.path.join('data', dataset + '_indexed_' + feature_type + '.pkl'), mode='wb') as outputfile:
-            pickle.dump(indexed[feature_type], outputfile)
+        for feature_type in feature_types:
+            X_indexed =spacy_tokenizer(text, feature_type)
+            with open(os.path.join('data', dataset + '_indexed_' + feature_type + '.pkl'), mode='wb') as outputfile:
+                pickle.dump(X_indexed, outputfile)
     print('indexed', dataset)
 
 

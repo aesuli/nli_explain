@@ -201,9 +201,9 @@ def spacy_tokenizer(text, feature_type):
         deps = [token.dep_.strip() for token in doc if len(token.dep_.strip()) > 0]
         if feature_type == 'D1':
             return ['D1_' + w for w in deps]
-        if feature_type == 'D1':
+        if feature_type == 'D2':
             return ['D2_' + w1 + '_' + w2 for w1, w2 in nltk.ngrams(deps, 2)]
-        if feature_type == 'D1':
+        if feature_type == 'D3':
             return ['D3_' + w1 + '_' + w2 + '_' + w3 for w1, w2, w3 in nltk.ngrams(deps, 3)]
 
     if feature_type == 'WL':

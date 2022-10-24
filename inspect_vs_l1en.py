@@ -146,7 +146,8 @@ if __name__ == '__main__':
         'EFCAMDAT2',
         'EFCAMDAT2_L1',
         'EFCAMDAT2_L2',
-        'EFCAMDAT2_L3'
+        'EFCAMDAT2_L3',
+        'openaire_en_nonnative'
     ]:
         for algo in ['svm']:  # , 'dt']:
             inspect(dataset, algo)

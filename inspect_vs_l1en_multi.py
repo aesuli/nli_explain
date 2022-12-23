@@ -31,7 +31,7 @@ def inspect(dataset, native_label):
 
         tokenizer = pipeline.named_steps['vect']
         # selector = pipeline.named_steps['select']
-        classifier = pipeline.named_steps['class']
+        classifier:EnsembleNativeNonNative = pipeline.named_steps['class']
 
         feature_names = tokenizer.get_feature_names_out()
 
@@ -46,7 +46,7 @@ def inspect(dataset, native_label):
         label = classifier.classes_[0]
         feats_w_classifier_weight = list()
         # for index, weight in enumerate(selector.inverse_transform(classifier.coef_[i].reshape(1, -1))[0]):
-        for index, weight in enumerate(classifier.coef_[0]):
+        for index, weight in enumerate(classifier.estimator_m.coef_[0]):
             if weight != 0:
                 feats_w_classifier_weight.append((weight, feature_names[index]))
 

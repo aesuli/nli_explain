@@ -45,6 +45,8 @@ if __name__ == '__main__':
         'redditEN',
         'EFCAMDAT2_L1',
         'EFCAMDAT2_L2',
-        'EFCAMDAT2_L3'
+        'EFCAMDAT2_L3',
+        'openaire_en_native',
+        'openaire_en_nonnative',
     ]:
         index(dataset, feature_types)

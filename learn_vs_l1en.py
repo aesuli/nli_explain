@@ -6,6 +6,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
 from sklearn.tree import DecisionTreeClassifier
 
+from cross_validation import MIN_DF
 from custom_tokenization import dummy_tokenizer
 
 
@@ -118,7 +119,7 @@ def learn(dataset, dataset_en, algo):
                 learner = DecisionTreeClassifier(max_depth=3)
 
             pipeline = Pipeline([
-                ('vect', CountVectorizer(analyzer=dummy_tokenizer, lowercase=False, min_df=2)),
+                ('vect', CountVectorizer(analyzer=dummy_tokenizer, lowercase=False, min_df=MIN_DF)),
                 # ('select', SelectPercentile(chi2, percentile=50)),
                 ('weight', TfidfTransformer()),
                 ('class', learner)
@@ -139,10 +140,13 @@ if __name__ == '__main__':
         'reddit',
         'EFCAMDAT2_L1',
         'EFCAMDAT2_L2',
-        'EFCAMDAT2_L3'
+        'EFCAMDAT2_L3',
+        'openaire_en_nonnative',
     ]:
         if dataset in {'toefl11', 'EFCAMDAT2', 'EFCAMDAT2_L1', 'EFCAMDAT2_L2', 'EFCAMDAT2_L3'}:
             dataset_en = 'LOCNESS'
+        elif dataset == 'openaire_en_nonnative':
+            dataset_en = 'openaire_en_native'
         else:
             dataset_en = 'redditEN'
         for algo in ['svm']:

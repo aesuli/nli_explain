@@ -124,7 +124,8 @@ if __name__ == '__main__':
     for dataset in [
         'toefl11',
         'reddit',
-        'EFCAMDAT2'
+        'EFCAMDAT2',
+        'openaire_en_nonnative'
     ]:
         for algo in ['svm']:  # , 'dtm']:
             inspect(dataset, algo)

@@ -12,6 +12,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 from custom_tokenization import dummy_tokenizer
 
+MIN_DF = 10
 
 def kfold(texts, labels, pipeline, folds=10, seed=0):
     """
@@ -149,7 +150,7 @@ def cv(dataset, algo, only_indexing=False):
 
             if only_indexing:
                 pipeline = Pipeline([
-                    ('vect', CountVectorizer(analyzer=dummy_tokenizer, lowercase=False, min_df=2)),
+                    ('vect', CountVectorizer(analyzer=dummy_tokenizer, lowercase=False, min_df=MIN_DF)),
                     # ('select', SelectPercentile(chi2, percentile=50)),
                     ('weight', TfidfTransformer()),
                 ])
@@ -160,7 +161,7 @@ def cv(dataset, algo, only_indexing=False):
                 print('----------------------', file=outputfile)
             else:
                 pipeline = Pipeline([
-                    ('vect', CountVectorizer(analyzer=dummy_tokenizer, lowercase=False, min_df=2)),
+                    ('vect', CountVectorizer(analyzer=dummy_tokenizer, lowercase=False, min_df=MIN_DF)),
                     # ('select', SelectPercentile(chi2, percentile=50)),
                     ('weight', TfidfTransformer()),
                     ('class', learner)
@@ -177,6 +178,7 @@ if __name__ == '__main__':
         'toefl11',
         'EFCAMDAT2',
         'reddit',
+        'openaire_en_nonnative',
     ]:
         # only_indexing = True
         only_indexing = False

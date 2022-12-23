@@ -10,6 +10,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
 from sklearn.tree import DecisionTreeClassifier
 
+from cross_validation import MIN_DF
 from custom_tokenization import dummy_tokenizer
 
 
@@ -124,78 +125,80 @@ def cv(dataset, dataset_en, algo, only_indexing=False):
         pathdir = 'kfold_res_vs_l1en'
     os.makedirs(pathdir, exist_ok=True)
 
-    with open(os.path.join(pathdir, dataset + '_' + algo + 'vs_l1en_kfold.txt'), mode='w',
-              encoding='utf-8') as outputfile:
-        for feat_mask in to_test:
-            mask = ''
-            X = None
-            for feat_type in feat_mask:
-                mask += '_' + feat_type
-                with open(os.path.join('data', dataset + '_indexed_' + feat_type + '.pkl'), mode='rb') as inputfile:
-                    feat_X = pickle.load(inputfile)
-                    if X is None:
-                        X = feat_X
-                    else:
-                        if len(X) != len(feat_X):
-                            raise Exception(
-                                f'Mismatch in the number of indexed documents {len(X)}!={len(feat_X)} ({feat_type})')
-                        for vect, feat_vect in zip(X, feat_X):
-                            vect.extend(feat_vect)
+    for feat_mask in to_test:
+        mask = ''
+        X = None
+        for feat_type in feat_mask:
+            mask += '_' + feat_type
+            with open(os.path.join('data', dataset + '_indexed_' + feat_type + '.pkl'), mode='rb') as inputfile:
+                feat_X = pickle.load(inputfile)
+                if X is None:
+                    X = feat_X
+                else:
+                    if len(X) != len(feat_X):
+                        raise Exception(
+                            f'Mismatch in the number of indexed documents {len(X)}!={len(feat_X)} ({feat_type})')
+                    for vect, feat_vect in zip(X, feat_X):
+                        vect.extend(feat_vect)
 
-            X_en = None
-            for feat_type in feat_mask:
-                with open(os.path.join('data', dataset_en + '_indexed_' + feat_type + '.pkl'), mode='rb') as inputfile:
-                    feat_X = pickle.load(inputfile)
-                    if X_en is None:
-                        X_en = feat_X
-                    else:
-                        if len(X_en) != len(feat_X):
-                            raise Exception(
-                                f'Mismatch in the number of indexed documents {len(X_en)}!={len(feat_X)} ({feat_type})')
-                        for vect, feat_vect in zip(X_en, feat_X):
-                            vect.extend(feat_vect)
+        X_en = None
+        for feat_type in feat_mask:
+            with open(os.path.join('data', dataset_en + '_indexed_' + feat_type + '.pkl'), mode='rb') as inputfile:
+                feat_X = pickle.load(inputfile)
+                if X_en is None:
+                    X_en = feat_X
+                else:
+                    if len(X_en) != len(feat_X):
+                        raise Exception(
+                            f'Mismatch in the number of indexed documents {len(X_en)}!={len(feat_X)} ({feat_type})')
+                    for vect, feat_vect in zip(X_en, feat_X):
+                        vect.extend(feat_vect)
 
-            if len(mask) == 0:
-                continue
+        if len(mask) == 0:
+            continue
 
-            X_vs = list()
-            y_vs = list()
-            for doc, label in zip(X, y):
-                X_vs.append(doc)
-                y_vs.append(label)
-            X_vs.extend(X_en)
-            y_vs.extend(y_en)
+        with open(os.path.join(pathdir, dataset + '_' + algo + mask + '_vs_l1en_kfold.txt'), mode='w',
+                  encoding='utf-8') as outputfile:
+            for lang in set(y):
+                X_vs = list()
+                y_vs = list()
+                for doc, label in zip(X, y):
+                    if label == lang:
+                        X_vs.append(doc)
+                        y_vs.append(label)
+                X_vs.extend(X_en)
+                y_vs.extend(y_en)
 
-            print(dataset + '_bin_' + algo + mask)
-            if algo == 'svm':
-                learner = LinearSVC()
-            elif algo == 'dt':
-                learner = DecisionTreeClassifier()
-            elif algo == 'dtm':
-                learner = OneVsRestClassifier(DecisionTreeClassifier(max_depth=3))
+                print(dataset + '_' + algo + mask + '_' + lang + '_vs_l1en_kfold')
+                if algo == 'svm':
+                    learner = LinearSVC()
+                elif algo == 'dt':
+                    learner = DecisionTreeClassifier()
+                elif algo == 'dtm':
+                    learner = OneVsRestClassifier(DecisionTreeClassifier(max_depth=3))
 
-            if only_indexing:
-                pipeline = Pipeline([
-                    ('vect', CountVectorizer(analyzer=dummy_tokenizer, lowercase=False, min_df=2)),
-                    # ('select', SelectPercentile(chi2, percentile=50)),
-                    ('weight', TfidfTransformer()),
-                ])
+                if only_indexing:
+                    pipeline = Pipeline([
+                        ('vect', CountVectorizer(analyzer=dummy_tokenizer, lowercase=False, min_df=MIN_DF)),
+                        # ('select', SelectPercentile(chi2, percentile=50)),
+                        ('weight', TfidfTransformer()),
+                    ])
 
-                print(dataset + '_' + algo + mask, file=outputfile)
-                Xt = pipeline.fit_transform(X_vs, y_vs)
-                print(Xt.shape, file=outputfile)
-                print('----------------------', file=outputfile)
-            else:
-                pipeline = Pipeline([
-                    ('vect', CountVectorizer(analyzer=dummy_tokenizer, lowercase=False, min_df=2)),
-                    # ('select', SelectPercentile(chi2, percentile=50)),
-                    ('weight', TfidfTransformer()),
-                    ('class', learner)
-                ])
+                    print(dataset + '_' + algo + mask + '_' + lang + '_vs_l1en_kfold', file=outputfile)
+                    Xt = pipeline.fit_transform(X_vs, y_vs)
+                    print(Xt.shape, file=outputfile)
+                    print('----------------------', file=outputfile)
+                else:
+                    pipeline = Pipeline([
+                        ('vect', CountVectorizer(analyzer=dummy_tokenizer, lowercase=False, min_df=MIN_DF)),
+                        # ('select', SelectPercentile(chi2, percentile=50)),
+                        ('weight', TfidfTransformer()),
+                        ('class', learner)
+                    ])
 
-                print(dataset + '_bin_' + algo + mask, file=outputfile)
-                print(kfold(X_vs, y_vs, pipeline), file=outputfile)
-                print('----------------------', file=outputfile)
+                    print(dataset + '_' + algo + mask + '_' + lang + '_vs_l1en_kfold', file=outputfile)
+                    print(kfold(X_vs, y_vs, pipeline), file=outputfile)
+                    print('----------------------', file=outputfile)
     print('cv\'ed', dataset, algo)
 
 
@@ -206,10 +209,13 @@ if __name__ == '__main__':
         'EFCAMDAT2',
         'EFCAMDAT2_L1',
         'EFCAMDAT2_L2',
-        'EFCAMDAT2_L3'
+        'EFCAMDAT2_L3',
+        'openaire_en_nonnative'
     ]:
         if dataset in {'toefl11', 'EFCAMDAT2', 'EFCAMDAT2_L1', 'EFCAMDAT2_L2', 'EFCAMDAT2_L3'}:
             dataset_en = 'LOCNESS'
+        elif dataset == 'openaire_en_nonnative':
+            dataset_en = 'openaire_en_native'
         else:
             dataset_en = 'redditEN'
 

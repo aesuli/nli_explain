@@ -1,3 +1,4 @@
+import numpy as np
 import os
 import pickle
 
@@ -43,10 +44,11 @@ def inspect(dataset, native_label):
 
         count = 50
 
-        label = classifier.classes_[0]
+        label_idx = np.where(classifier.classes_==native_label)[0][0]
+        label = classifier.classes_[label_idx]
         feats_w_classifier_weight = list()
         # for index, weight in enumerate(selector.inverse_transform(classifier.coef_[i].reshape(1, -1))[0]):
-        for index, weight in enumerate(classifier.estimator_m.coef_[0]):
+        for index, weight in enumerate(classifier.estimator_m.coef_[label_idx]):
             if weight != 0:
                 feats_w_classifier_weight.append((weight, feature_names[index]))
 

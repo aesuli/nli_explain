@@ -2,15 +2,14 @@ import os
 import pickle
 
 import numpy as np
-from sklearn.base import BaseEstimator
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
-from sklearn.linear_model import LogisticRegressionCV
 from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import StratifiedKFold
 from sklearn.pipeline import Pipeline
 
 from cross_validation import MIN_DF
 from custom_tokenization import dummy_tokenizer
+from learn_vs_l1en_multi import EnsembleNativeNonNative
 
 
 def kfold(texts, labels, pipeline, native_label, folds=10, seed=0):
@@ -52,7 +51,7 @@ def kfold(texts, labels, pipeline, native_label, folds=10, seed=0):
         cv_predicted_labels.extend(predicted_labels)
 
     bin_cv_true_labels = np.asarray(cv_true_labels)
-    bin_cv_true_labels[bin_cv_true_labels!=native_label]='nn'
+    bin_cv_true_labels[bin_cv_true_labels != native_label] = 'nn'
     cm = confusion_matrix(bin_cv_true_labels, cv_predicted_labels, labels=pipeline.named_steps['class'].classes_)
 
     output = 'Confusion matrix\n'
@@ -69,41 +68,6 @@ def kfold(texts, labels, pipeline, native_label, folds=10, seed=0):
     return output
 
 
-class EnsembleNativeNonNative(BaseEstimator):
-
-    def __init__(self, native_label ,estimator_m=LogisticRegressionCV(multi_class='multinomial',n_jobs=-1), estimator_b=LogisticRegressionCV(multi_class='multinomial', n_jobs=-1)):
-        self._native_label = native_label
-        self._nn_label = None
-        self.estimator_m = estimator_m
-        self.estimator_b = estimator_b
-
-    def fit(self, X, y=None, **kwargs):
-        self.estimator_m.fit(X, y)
-        m_probs = self.estimator_m.predict_proba(X)
-        b_y = np.asarray(y)
-        b_y[b_y!=self._native_label]='nn'
-        self.estimator_b.fit(m_probs, list(b_y))
-        return self
-
-    def predict(self, X, y=None):
-        m_probs = self.estimator_m.predict_proba(X)
-        return self.estimator_b.predict(m_probs)
-
-    def predict_proba(self, X):
-        m_probs = self.estimator_m.predict_proba(X)
-        return self.estimator_b.predict_proba(m_probs)
-
-    def score(self, X, y):
-        m_probs = self.estimator_m.predict_proba(X)
-        b_y = y.copy()
-        b_y[b_y!='en']='nn'
-        return self.estimator_b.score(m_probs, b_y)
-
-    @property
-    def classes_(self):
-        return self.estimator_b.classes_
-
-
 def cv(dataset, dataset_en, native_label):
     print('cv', dataset)
     with open(os.path.join('data', dataset_en + '.pkl'), mode='rb') as inputfile:
@@ -114,24 +78,24 @@ def cv(dataset, dataset_en, native_label):
         pickle.load(inputfile)
         y = pickle.load(inputfile)
 
-    ratio = len(y)//len(y_en)
+    ratio = len(y) // len(y_en)
     y = y[::ratio]
-    print(len(y),len(y_en), set(y))
-
+    print(len(y), len(y_en), set(y))
 
     to_test = [
-        ['T1'], #solo token
-        ['PHO3', 'PHO2', 'PHO1', 'PH3', 'PH2', 'PH1', 'PHO', 'T1'], #tutte le features fonetiche + token
-        ['PHO3', 'PHO2', 'PHO1', 'PH3', 'PH2', 'PH1', 'PHO'], #tutte le feature fonetiche
-        ['PHO3', 'T1'], #token + trigrams fonetici
-        ['T1', 'PHO'], #token + parola fonetica
-        ['PH3','PH2','PH1'],
-        ['PHO3','PHO2','PHO1'],
-        ['PHO3', 'PH3'], # trigrams con e senza spazio
-        ['PHO2', 'PH2'], # bigrams con e senza spazio
-        ['PH1'], # solo unigrams senza spazi
-        ['PHO'], # solo parola fonetica
-        ['PHO3', 'PHO2', 'PHO1', 'PHO', 'PH3', 'PH2', 'PH1', 'T1', 'T2', 'T3'], #tutte le features fonetiche + ngrams token
+        ['T1'],  # solo token
+        ['PHO3', 'PHO2', 'PHO1', 'PH3', 'PH2', 'PH1', 'PHO', 'T1'],  # tutte le features fonetiche + token
+        ['PHO3', 'PHO2', 'PHO1', 'PH3', 'PH2', 'PH1', 'PHO'],  # tutte le feature fonetiche
+        ['PHO3', 'T1'],  # token + trigrams fonetici
+        ['T1', 'PHO'],  # token + parola fonetica
+        ['PH3', 'PH2', 'PH1'],
+        ['PHO3', 'PHO2', 'PHO1'],
+        ['PHO3', 'PH3'],  # trigrams con e senza spazio
+        ['PHO2', 'PH2'],  # bigrams con e senza spazio
+        ['PH1'],  # solo unigrams senza spazi
+        ['PHO'],  # solo parola fonetica
+        ['PHO3', 'PHO2', 'PHO1', 'PHO', 'PH3', 'PH2', 'PH1', 'T1', 'T2', 'T3'],
+        # tutte le features fonetiche + ngrams token
         # ['T2'],
         # ['T3'],
         # ['L1'],
